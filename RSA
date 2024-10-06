@@ -1,0 +1,63 @@
+import math
+
+# Function to calculate modular inverse using Extended Euclidean Algorithm
+def modinv(e, phi):
+    def egcd(a, b):
+        if a == 0:
+            return b, 0, 1
+        g, y, x = egcd(b % a, a)
+        return g, x - (b // a) * y, y
+    g, x, _ = egcd(e, phi)
+    if g != 1:
+        raise Exception('Modular inverse does not exist')
+    return x % phi
+
+# Input values for p and q
+p = int(input("Enter the value of p (a prime number): "))
+q = int(input("Enter the value of q (a prime number): "))
+
+# Calculate n and φ(n)
+n = p * q
+phi = (p - 1) * (q - 1)
+
+# Choose e
+e = 2
+while e < phi:
+    if math.gcd(e, phi) == 1:
+        break
+    e += 1
+
+print("e:", e)
+
+# Calculate d (modular inverse of e modulo φ(n))
+d = modinv(e, phi)
+
+# Output public and private keys
+print(f"Public key: <e={e}, n={n}>")
+print(f"Private key: <d={d}, n={n}>")
+
+# Function to encrypt a message (for each character if it's a string, or as a number if numeric)
+def encrypt_message(message, e, n):
+    if message.isdigit():  # Check if it's a numeric message
+        return [pow(int(message), e, n)]
+    else:
+        return [pow(ord(char), e, n) for char in message]
+
+# Function to decrypt a message (for each encrypted value)
+def decrypt_message(encrypted_message, d, n, is_numeric):
+    if is_numeric:  # If the original message was numeric
+        return str(pow(encrypted_message[0], d, n))
+    else:
+        return ''.join([chr(pow(char, d, n)) for char in encrypted_message])
+
+# Input message to encrypt
+message = input("Enter the message to encrypt (either number or text): ")
+is_numeric = message.isdigit()  # Check if the message is numeric
+
+# Encrypt the message
+encrypted_msg = encrypt_message(message, e, n)
+print("Encrypted message:", encrypted_msg)
+
+# Decrypt the message
+decrypted_msg = decrypt_message(encrypted_msg, d, n, is_numeric)
+print("Decrypted message:", decrypted_msg)
