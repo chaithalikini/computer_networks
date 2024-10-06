@@ -1,0 +1,97 @@
+import random
+
+# Function to check if a number is prime
+def is_prime(num):
+    if num < 2:
+        return False
+    for i in range(2, int(num ** 0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+# Function to generate a random prime number in a given range
+def generate_prime(start, end):
+    while True:
+        num = random.randint(start, end)
+        if is_prime(num):
+            return num
+
+# Function to calculate GCD
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+# Function to calculate the modular inverse
+def mod_inverse(e, phi):
+    d = 0
+    x1, x2, y1 = 0, 1, 1
+    temp_phi = phi
+
+    while e > 0:
+        temp1, temp2 = divmod(temp_phi, e)
+        temp_phi, e = e, temp2
+
+        x = x2 - temp1 * x1
+        y = d - temp1 * y1
+
+        x2, x1 = x1, x
+        d, y1 = y1, y
+
+    if temp_phi == 1:
+        return d + phi
+
+# Function to generate keys
+def generate_keypair():
+    # Generate two large random prime numbers
+    p = generate_prime(50, 100)
+    q = generate_prime(50, 100)
+   
+    # Ensure p and q are distinct
+    while p == q:
+        q = generate_prime(50, 100)
+   
+    n = p * q
+    phi = (p - 1) * (q - 1)
+
+    # Choose e such that 1 < e < phi and gcd(e, phi) = 1
+    e = random.randrange(2, phi)
+    while gcd(e, phi) != 1:
+        e = random.randrange(2, phi)
+
+    # Calculate d
+    d = mod_inverse(e, phi)
+
+    return ((e, n), (d, n))
+
+# Function to encrypt the message
+def encrypt(public_key, plaintext):
+    e, n = public_key
+    cipher = [(ord(char) ** e) % n for char in plaintext]
+    return cipher
+
+# Function to decrypt the message
+def decrypt(private_key, ciphertext):
+    d, n = private_key
+    plain = [chr((char ** d) % n) for char in ciphertext]
+    return ''.join(plain)
+
+# Main logic
+if __name__ == "__main__":
+    # Generate public and private keys
+    print("Generating public and private keys...")
+    public_key, private_key = generate_keypair()
+    print(f"Public Key: {public_key}")
+    print(f"Private Key: {private_key}")
+
+    # Input message from the user
+    message = input("\nEnter the message to encrypt: ")
+    print(f"Original Message: {message}")
+
+    # Encrypt the message
+    encrypted_msg = encrypt(public_key, message)
+    print(f"Encrypted Message: {encrypted_msg}")
+
+    # Decrypt the message
+    decrypted_msg = decrypt(private_key, encrypted_msg)
+    print(f"Decrypted Message: {decrypted_msg}")
